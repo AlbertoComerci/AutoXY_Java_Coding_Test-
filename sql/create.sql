@@ -1,0 +1,55 @@
+CREATE TABLE utenti (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE, 
+    password VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE marche (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE modelli (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    marca_id BIGINT NOT NULL,
+    FOREIGN KEY (marca_id) REFERENCES marche(id) ON DELETE CASCADE
+);
+
+CREATE TABLE regioni (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE stati (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE
+    
+);
+
+CREATE TABLE alimentazioni (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE Automobili (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    anno INT NOT NULL CHECK (anno >= 1900 AND anno <= 2025),
+    prezzo DECIMAL(10, 2) NOT NULL CHECK (prezzo >= 0),
+    km INT NOT NULL CHECK (km >= 0),
+    utente_id BIGINT NOT NULL,
+    marca_id BIGINT NOT NULL,
+    regione_id BIGINT NOT NULL,
+    stato_id BIGINT NOT NULL,
+    alimentazione_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (utente_id) REFERENCES utenti(id),
+    FOREIGN KEY (marca_id) REFERENCES marche(id),
+    FOREIGN KEY (regione_id) REFERENCES regioni(id),
+    FOREIGN KEY (stato_id) REFERENCES stati(id),
+    FOREIGN KEY (alimentazione_id) REFERENCES alimentazioni(id)
+);
