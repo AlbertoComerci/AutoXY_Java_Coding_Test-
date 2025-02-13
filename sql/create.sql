@@ -42,6 +42,7 @@ CREATE TABLE Automobili (
     km INT NOT NULL CHECK (km >= 0),
     utente_id BIGINT NOT NULL,
     marca_id BIGINT NOT NULL,
+    modello_id BIGINT NOT NULL,
     regione_id BIGINT NOT NULL,
     stato_id BIGINT NOT NULL,
     alimentazione_id BIGINT NOT NULL,
@@ -49,6 +50,7 @@ CREATE TABLE Automobili (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (utente_id) REFERENCES utenti(id),
     FOREIGN KEY (marca_id) REFERENCES marche(id),
+    FOREIGN KEY (modello_id) REFERENCES modelli(id),
     FOREIGN KEY (regione_id) REFERENCES regioni(id),
     FOREIGN KEY (stato_id) REFERENCES stati(id),
     FOREIGN KEY (alimentazione_id) REFERENCES alimentazioni(id)

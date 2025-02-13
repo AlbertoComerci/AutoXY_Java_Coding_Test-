@@ -22,5 +22,8 @@ public class Marca {
 
     @OneToMany(mappedBy = "marca", cascade = CascadeType.ALL)
     private List<Modello> modelli;
+
+    @OneToMany(mappedBy = "marca", cascade = CascadeType.ALL)
+    private List<Automobile> automobili;
     
 }

@@ -38,6 +38,10 @@ public class Automobile {
     private Marca marca;
 
     @ManyToOne
+    @JoinColumn(name = "modello_id", nullable = false)
+    private Modello modello;
+
+    @ManyToOne
     @JoinColumn(name = "regione_id", nullable = false)
     private Regione regione;
 
