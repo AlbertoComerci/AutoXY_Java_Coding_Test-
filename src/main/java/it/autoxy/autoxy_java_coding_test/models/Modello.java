@@ -1,5 +1,6 @@
 package it.autoxy.autoxy_java_coding_test.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -25,6 +26,6 @@ public class Modello {
     private Marca marca;
 
     @OneToMany(mappedBy = "modello", cascade = CascadeType.ALL)
-    private List<Automobile> automobili;
+    private List<Automobile> automobili = new ArrayList<Automobile>();
 
 }

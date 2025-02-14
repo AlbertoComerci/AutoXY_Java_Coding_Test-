@@ -1,6 +1,7 @@
 package it.autoxy.autoxy_java_coding_test.models;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -31,5 +32,5 @@ public class Utente {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "utente", cascade = CascadeType.ALL)
-    private List<Automobile> automobili;
+    private List<Automobile> automobili = new ArrayList<Automobile>();
 }

@@ -11,5 +11,6 @@ import it.autoxy.autoxy_java_coding_test.models.Modello;
 @Repository
 public interface ModelloRepository extends JpaRepository<Modello, Long> {
     List<Modello> findByMarca(Marca marca);
+    Modello findByNome(String nome);
 }
 
