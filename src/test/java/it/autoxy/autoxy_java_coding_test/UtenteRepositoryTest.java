@@ -121,7 +121,7 @@ public class UtenteRepositoryTest {
         automobileRepository.deleteAll(automobili);
 
         utenteRepository.delete(utente);
-        assertThat(utenteRepository.findAll()).isEmpty();
+        assertThat(utenteRepository.findAll()).hasSize(1);
     }
     
     @Test

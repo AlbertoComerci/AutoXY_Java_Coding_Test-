@@ -123,3 +123,13 @@ INSERT INTO modelli (marca_id, nome) VALUES
 ((SELECT id FROM Marche WHERE nome = 'Peugeot'), '508'),
 ((SELECT id FROM Marche WHERE nome = 'Peugeot'), '3008'),
 ((SELECT id FROM Marche WHERE nome = 'Peugeot'), '5008');
+
+-- Utenti
+INSERT INTO utenti (username, email, password) VALUES
+('utente_prova', 'utente@prova.com', 'password123');
+
+-- Automobili
+INSERT INTO automobili (anno, prezzo, km, utente_id, marca_id, modello_id, regione_id, stato_id, alimentazione_id) VALUES
+(2016, 10000, 10000, 1, 1, 1, 1, 1, 1),
+(2017, 20000, 20000, 1, 2, 2, 2, 2, 2);
+

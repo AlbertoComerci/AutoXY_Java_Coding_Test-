@@ -286,7 +286,7 @@ public class AutomobileRepositoryTest {
         Iterable<Automobile> automobili = automobileRepository.findAll();
         Automobile auto = automobili.iterator().next();
         automobileRepository.delete(auto);
-        assertThat(automobileRepository.findAll()).hasSize(1);
+        assertThat(automobileRepository.findAll()).hasSize(3);
     }
     
     @Test

@@ -7,9 +7,15 @@ import it.autoxy.autoxy_java_coding_test.models.Utente;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+
 public interface UtenteService {
 
     void saveUtente(UtenteDto utenteDto, RedirectAttributes redirectAttributes, HttpServletRequest request, HttpServletResponse response);
+
     Utente findUtenteByEmail(String email);
+
+    Utente find(long id);
+
+    
 
 }

@@ -6,6 +6,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Getter 
 @Setter 
@@ -31,26 +33,32 @@ public class Automobile {
 
     @ManyToOne
     @JoinColumn(name = "utente_id", nullable = false)
+    @JsonBackReference
     private Utente utente;
 
     @ManyToOne
     @JoinColumn(name = "marca_id", nullable = false)
+    @JsonBackReference 
     private Marca marca;
 
     @ManyToOne
     @JoinColumn(name = "modello_id", nullable = false)
+    @JsonBackReference 
     private Modello modello;
 
     @ManyToOne
     @JoinColumn(name = "regione_id", nullable = false)
+    @JsonBackReference 
     private Regione regione;
 
     @ManyToOne
     @JoinColumn(name = "stato_id", nullable = false)
+    @JsonBackReference 
     private Stato stato;
 
     @ManyToOne
     @JoinColumn(name = "alimentazione_id", nullable = false)
+    @JsonBackReference 
     private Alimentazione alimentazione;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

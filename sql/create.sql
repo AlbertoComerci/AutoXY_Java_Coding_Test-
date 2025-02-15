@@ -35,7 +35,7 @@ CREATE TABLE alimentazioni (
 );
 
 
-CREATE TABLE Automobili (
+CREATE TABLE automobili (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     anno INT NOT NULL CHECK (anno >= 1900 AND anno <= 2025),
     prezzo DECIMAL(10, 2) NOT NULL CHECK (prezzo >= 0),
