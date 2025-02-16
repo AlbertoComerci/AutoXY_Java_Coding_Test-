@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import org.springframework.web.bind.annotation.RequestBody;
 
 import it.autoxy.autoxy_java_coding_test.dtos.AutomobileDto;
@@ -35,12 +38,16 @@ public class AutomobileController {
     @Autowired
     private AutomobileService automobileService;
 
+    @Operation(summary = "Ottieni tutte le automobili", description = "Restituisce una lista di automobili")
+    @ApiResponse(responseCode = "200", description = "Automobili trovate con successo")
     @GetMapping
     public ResponseEntity<List<AutomobileDto>> getAllAutomobili() {
         List<AutomobileDto> automobili = automobileService.readAll();
         return ResponseEntity.ok(automobili);
     }
 
+    @Operation(summary = "Mostra una singola automobile", description = "Restituisce un'automobile specifica")
+    @ApiResponse(responseCode = "200", description = "Automobile trovate con successo")
     @GetMapping("/{id}")
     public ResponseEntity<AutomobileDto> getAutomobileById(@PathVariable Long id) {
         AutomobileDto automobile = automobileService.read(id);
