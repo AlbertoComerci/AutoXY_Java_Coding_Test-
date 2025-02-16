@@ -2,6 +2,9 @@ package it.autoxy.autoxy_java_coding_test.services;
 
 
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +22,14 @@ public class UtenteServiceImpl implements UtenteService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Override
+    public List<UtenteDto> getAll() {
+        List<Utente> utenti = utenteRepository.findAll();
+        return utenti.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+    }
 
 
     @Override
@@ -47,6 +58,20 @@ public class UtenteServiceImpl implements UtenteService {
     public Utente find(long id) {
         return utenteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato"));
+    }
+
+    public UtenteDto convertToDto(Utente utente) {
+        String[] parts = utente.getUsername().split(" ", 2);
+        String nome = parts.length > 0 ? parts[0] : "";
+        String cognome = parts.length > 1 ? parts[1] : "";
+    
+        UtenteDto dto = new UtenteDto();
+        dto.setId(utente.getId());
+        dto.setNome(nome);
+        dto.setCognome(cognome);
+        dto.setEmail(utente.getEmail());
+    
+        return dto;
     }
 
 }

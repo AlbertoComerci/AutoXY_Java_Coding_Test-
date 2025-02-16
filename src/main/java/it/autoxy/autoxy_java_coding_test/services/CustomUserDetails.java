@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import it.autoxy.autoxy_java_coding_test.models.Utente;
