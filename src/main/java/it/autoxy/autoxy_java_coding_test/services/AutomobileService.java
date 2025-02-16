@@ -1,6 +1,7 @@
 package it.autoxy.autoxy_java_coding_test.services;
 
 import it.autoxy.autoxy_java_coding_test.dtos.AutomobileDto;
+import it.autoxy.autoxy_java_coding_test.dtos.AutomobileRequestDto;
 import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
 import it.autoxy.autoxy_java_coding_test.models.Automobile;
 import it.autoxy.autoxy_java_coding_test.models.Marca;
@@ -20,8 +21,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -75,82 +74,100 @@ public class AutomobileService implements CrudService<AutomobileDto, Automobile,
         return convertToDto(automobile);
     }
     
-    @Override
-    public AutomobileDto create(Automobile automobile) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if(authentication != null) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Utente utente = utenteRepository.findById(userDetails.getId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato"));
-            automobile.setUtente(utente);
+    // @Override
+    public AutomobileDto create(AutomobileRequestDto dto) {
+        // Verifica che il DTO non sia nullo
+        if (dto == null) {
+            throw new IllegalArgumentException("Il Dto di richiesta è nullo");
         }
         
-        regioneRepository.findById(automobile.getRegione().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Regione non valida"));
-        
-        statoRepository.findById(automobile.getStato().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stato non valido"));
-        
-        alimentazioneRepository.findById(automobile.getAlimentazione().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Alimentazione non valida"));
-        
-        Marca marca = marcaRepository.findById(automobile.getMarca().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marca non valida"));
-        
-        // Verifica se il modello appartiene alla marca
-        Modello modello = modelloRepository.findById(automobile.getModello().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modello non valido"));
-        
-        if (!modello.getMarca().equals(marca)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Il modello selezionato non appartiene alla marca scelta");
+        if (dto.getUtenteId() == null || dto.getMarcaId() == null || dto.getModelloId() == null ||
+        dto.getRegioneId() == null || dto.getStatoId() == null || dto.getAlimentazioneId() == null) {
+            throw new IllegalArgumentException("Uno o più ID sono null. Controlla la richiesta.");
         }
-        return convertToDto(automobileRepository.save(automobile));
+        
+        
+        
+        Utente utente = utenteRepository.findById(dto.getUtenteId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Utente non trovato"));
+        
+        Marca marca = marcaRepository.findById(dto.getMarcaId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Marca non trovata"));
+        
+        Modello modello = modelloRepository.findById(dto.getModelloId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Modello non trovato"));
+        
+        Regione regione = regioneRepository.findById(dto.getRegioneId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Regione non trovata"));
+        
+        Stato stato = statoRepository.findById(dto.getStatoId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stato non trovato"));
+        
+        Alimentazione alimentazione = alimentazioneRepository.findById(dto.getAlimentazioneId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Alimentazione non trovata"));
+        
+        // Creazione della nuova automobile
+        Automobile automobile = new Automobile();
+        automobile.setAnno(dto.getAnno());
+        automobile.setPrezzo(dto.getPrezzo());
+        automobile.setKm(dto.getKm());
+        automobile.setUtente(utente);
+        automobile.setMarca(marca);
+        automobile.setModello(modello);
+        automobile.setRegione(regione);
+        automobile.setStato(stato);
+        automobile.setAlimentazione(alimentazione);
+        
+        // Salvataggio nel DB
+        Automobile savedAutomobile = automobileRepository.save(automobile);
+        
+        // Conversione in DTO per la risposta
+        return convertToDto(savedAutomobile);
     }
     
-    @Override
-    public AutomobileDto update(Long id, Automobile updatedAutomobile) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    
+    // @Override
+    public AutomobileDto update(Long id, AutomobileRequestDto dto) {
+        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
-        Automobile existingAutomobile = automobileRepository.findById(id)
+        Automobile automobile = automobileRepository.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
         
-        if (existingAutomobile.getUtente().getId() != (userDetails.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Non sei autorizzato a modificare questa automobile");
-        }
+        // if (existingAutomobile.getUtente().getId() != (userDetails.getId())) {
+        //     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Non sei autorizzato a modificare questa automobile");
+        // }
         
-        regioneRepository.findById(updatedAutomobile.getRegione().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Regione non valida"));
-        
-        statoRepository.findById(updatedAutomobile.getStato().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stato non valido"));
-        
-        alimentazioneRepository.findById(updatedAutomobile.getAlimentazione().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Alimentazione non valida"));
+        automobile.setAnno(dto.getAnno());
+        automobile.setPrezzo(dto.getPrezzo());
+        automobile.setKm(dto.getKm());
         
         
-        Marca marca = marcaRepository.findById(updatedAutomobile.getMarca().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marca non valida"));
         
-        // Verifica se il modello appartiene alla marca
-        Modello modello = modelloRepository.findById(updatedAutomobile.getModello().getId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modello non valido"));
+        Utente utente = utenteRepository.findById(dto.getUtenteId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Utente non trovato"));
+        Marca marca = marcaRepository.findById(dto.getMarcaId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Marca non trovata"));
+        Modello modello = modelloRepository.findById(dto.getModelloId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Modello non trovato"));
+        Regione regione = regioneRepository.findById(dto.getRegioneId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Regione non trovata"));
+        Stato stato = statoRepository.findById(dto.getStatoId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stato non trovato"));
+        Alimentazione alimentazione = alimentazioneRepository.findById(dto.getAlimentazioneId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Alimentazione non trovata"));
         
-        if (!modello.getMarca().equals(marca)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Il modello selezionato non appartiene alla marca scelta");
-        }
+        automobile.setUtente(utente);
+        automobile.setMarca(marca);
+        automobile.setModello(modello);
+        automobile.setRegione(regione);
+        automobile.setStato(stato);
+        automobile.setAlimentazione(alimentazione);
         
-        existingAutomobile.setAnno(updatedAutomobile.getAnno());
-        existingAutomobile.setPrezzo(updatedAutomobile.getPrezzo());
-        existingAutomobile.setKm(updatedAutomobile.getKm());
-        existingAutomobile.setMarca(updatedAutomobile.getMarca());
-        existingAutomobile.setModello(updatedAutomobile.getModello());
-        existingAutomobile.setRegione(updatedAutomobile.getRegione());
-        existingAutomobile.setStato(updatedAutomobile.getStato());
-        existingAutomobile.setAlimentazione(updatedAutomobile.getAlimentazione());
+        Automobile updatedAutomobile = automobileRepository.save(automobile);
         
-        return convertToDto(automobileRepository.save(existingAutomobile));
+        
+        return convertToDto(updatedAutomobile);
     }
     
     @Override
@@ -295,11 +312,11 @@ public class AutomobileService implements CrudService<AutomobileDto, Automobile,
     }
     
     
-    public boolean isOwner(Long automobileId, Long utenteId) {
-        Automobile automobile = automobileRepository.findById(automobileId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
-        return automobile.getUtente().getId() == (utenteId);
-    }
+    // public boolean isOwner(Long automobileId, Long utenteId) {
+    //     Automobile automobile = automobileRepository.findById(automobileId)
+    //     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
+    //     return automobile.getUtente().getId() == (utenteId);
+    // }
 }
 
 

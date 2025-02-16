@@ -28,11 +28,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disabilita CSRF per testare facilmente con Postman
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/automobili", "/api/automobili/**").permitAll() // Endpoint pubblici accessibili senza autenticazione
-                .anyRequest().authenticated() // Tutti gli altri richiedono autenticazione
+                // .requestMatchers("/api/automobili", "/api/automobili/**").permitAll() // Endpoint pubblici accessibili senza autenticazione
+                // .anyRequest().authenticated() // Tutti gli altri richiedono autenticazione
+                .anyRequest().permitAll()
             )
-            .formLogin(form -> form.disable()) // Disabilita il login form di default
-            .httpBasic(basic -> basic.init(http)); // abilita l'autenticazione Basic (username/password)
+            .formLogin(form -> form.disable()); // Disabilita il login form di default
+            // .httpBasic(basic -> basic.init(http)); // abilita l'autenticazione Basic (username/password)
 
         return http.build();
     }

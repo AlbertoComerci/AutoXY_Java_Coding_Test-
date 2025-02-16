@@ -1,4 +1,4 @@
-package it.autoxy.autoxy_java_coding_test;
+package it.autoxy.autoxy_java_coding_test.repositories;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
 import it.autoxy.autoxy_java_coding_test.models.Automobile;
@@ -28,6 +29,7 @@ import it.autoxy.autoxy_java_coding_test.repositories.StatoRepository;
 import it.autoxy.autoxy_java_coding_test.repositories.UtenteRepository;
 
 @DataJpaTest
+@Transactional
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 public class AutomobileRepositoryTest {
     

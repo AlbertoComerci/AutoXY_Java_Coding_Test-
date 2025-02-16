@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import it.autoxy.autoxy_java_coding_test.dtos.AutomobileDto;
+import it.autoxy.autoxy_java_coding_test.dtos.AutomobileRequestDto;
 import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
 import it.autoxy.autoxy_java_coding_test.models.Automobile;
 import it.autoxy.autoxy_java_coding_test.models.Marca;
@@ -47,20 +48,21 @@ public class AutomobileController {
     }
 
     @PostMapping
-    public ResponseEntity<AutomobileDto> createAutomobile(@RequestBody Automobile automobile) {
-        AutomobileDto createdAutomobile = automobileService.create(automobile);
+    public ResponseEntity<AutomobileDto> createAutomobile(@RequestBody AutomobileRequestDto dto) {
+        System.out.println("Automobile ricevuta: " + dto);
+        AutomobileDto createdAutomobile = automobileService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAutomobile);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@automobileService.isOwner(#id, authentication.principal.id)")
-    public ResponseEntity<AutomobileDto> updateAutomobile(@PathVariable Long id, @RequestBody Automobile updatedAutomobile) {
-        AutomobileDto updated = automobileService.update(id, updatedAutomobile);
+    // @PreAuthorize("@automobileService.isOwner(#id, authentication.principal.id)")
+    public ResponseEntity<AutomobileDto> updateAutomobile(@PathVariable Long id, @RequestBody AutomobileRequestDto dto) {
+        AutomobileDto updated = automobileService.update(id, dto);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@automobileService.isOwner(#id, authentication.principal.id)")
+    // @PreAuthorize("@automobileService.isOwner(#id, authentication.principal.id)")
     public ResponseEntity<Void> deleteAutomobile(@PathVariable Long id) {
         automobileService.delete(id);
         return ResponseEntity.noContent().build();
