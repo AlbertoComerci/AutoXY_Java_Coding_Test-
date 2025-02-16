@@ -16,68 +16,68 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomUserDetails implements UserDetails {
-
+    
     private Long id;
     private String username;
     private String email;
     private String password;
-
+    
     public CustomUserDetails(Utente utente) {
         this.id = utente.getId();
         this.username = utente.getUsername();
         this.email = utente.getEmail();
         this.password = utente.getPassword();
     }
-
+    
     //? la Collection può contenere oggetti di qualsiasi classe che estende o implementa l'interfaccia GrantedAuthority
     //? authorities è l'insieme di autorizzazioni o ruoli di un utente
-
+    
     //? restituisce l'insieme di autorizzazioni o ruoli di un utente
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("USER"));
+        return Collections.emptyList();
     }
-
+    
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-
+    
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
+    
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
+    
     @Override
     public boolean isEnabled() {
         return true;
     }
-
+    
     @Override
     public String getPassword() {
         return password;
     }
-
+    
     @Override
     public String getUsername() {
         return email;
     }
-
+    
     public Long getId() {
         return id;
     }
-
+    
     public void setId(Long id) {
         this.id = id;
     }
-
+    
     public String getFullName() {
         return username;
     }
-
+    
 }

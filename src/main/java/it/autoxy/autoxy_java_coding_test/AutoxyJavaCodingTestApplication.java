@@ -1,5 +1,6 @@
 package it.autoxy.autoxy_java_coding_test;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,12 @@ public class AutoxyJavaCodingTestApplication {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public ModelMapper instanceModelMapper() {
+		ModelMapper mapper = new ModelMapper();
+		return mapper;
 	}
 
 }

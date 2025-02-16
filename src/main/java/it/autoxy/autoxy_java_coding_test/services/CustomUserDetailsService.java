@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         if (utente == null) {
 
-            throw new UsernameNotFoundException("User not found");
+            throw new UsernameNotFoundException("User ");
         } 
 
         return new CustomUserDetails(utente.getId(),

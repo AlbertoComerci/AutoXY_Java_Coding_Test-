@@ -222,14 +222,14 @@ public class AutomobileRepositoryTest {
     
     @Test
     void testFindByPrezzoBetween() {
-        List<Automobile> result = automobileRepository.findByPrezzoBetween(5000, 20000);
+        List<Automobile> result = automobileRepository.findByPrezzoBetween(BigDecimal.valueOf(5000.00), BigDecimal.valueOf(20000.00)); // 5000.00, 20000.00);
         assertThat(result).isNotEmpty();
     }
     
     @Test
     void findByPrezzoBetween_ShouldReturnCarsInPriceRange() {
         
-        List<Automobile> found = automobileRepository.findByPrezzoBetween(10000.00, 20000.00);
+        List<Automobile> found = automobileRepository.findByPrezzoBetween(BigDecimal.valueOf(10000.00), BigDecimal.valueOf(20000.00)); // 10000.00, 20000.00);
         
         
         assertThat(found).isNotEmpty()

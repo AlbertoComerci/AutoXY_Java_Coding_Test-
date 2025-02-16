@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,7 @@ import it.autoxy.autoxy_java_coding_test.services.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -26,11 +28,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disabilita CSRF per testare facilmente con Postman
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/public/**").permitAll() // Endpoint pubblici accessibili senza autenticazione
+                .requestMatchers("/api/automobili", "/api/automobili/**").permitAll() // Endpoint pubblici accessibili senza autenticazione
                 .anyRequest().authenticated() // Tutti gli altri richiedono autenticazione
             )
             .formLogin(form -> form.disable()) // Disabilita il login form di default
-            .httpBasic(basic -> basic.disable()); // Disabilita anche l'autenticazione Basic (username/password)
+            .httpBasic(basic -> basic.init(http)); // abilita l'autenticazione Basic (username/password)
 
         return http.build();
     }
