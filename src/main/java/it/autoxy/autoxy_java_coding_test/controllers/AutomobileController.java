@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import it.autoxy.autoxy_java_coding_test.dtos.AutomobileDto;
 import it.autoxy.autoxy_java_coding_test.dtos.AutomobileRequestDto;
 import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
-import it.autoxy.autoxy_java_coding_test.models.Automobile;
 import it.autoxy.autoxy_java_coding_test.models.Marca;
 import it.autoxy.autoxy_java_coding_test.models.Modello;
 import it.autoxy.autoxy_java_coding_test.models.Regione;

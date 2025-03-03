@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class AutomobileService implements CrudService<AutomobileDto, Automobile, Long> {
+public class AutomobileService  {
     
     @Autowired
     private AutomobileRepository automobileRepository;
@@ -60,21 +60,21 @@ public class AutomobileService implements CrudService<AutomobileDto, Automobile,
         return modelMapper.map(automobile, AutomobileDto.class);
     }
     
-    @Override
+    
     public List<AutomobileDto> readAll() {
         return automobileRepository.findAll().stream()
         .map(this::convertToDto)
         .collect(Collectors.toList());
     }
     
-    @Override
+    
     public AutomobileDto read(Long id) {
         Automobile automobile = automobileRepository.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
         return convertToDto(automobile);
     }
     
-    // @Override
+
     public AutomobileDto create(AutomobileRequestDto dto) {
         // Verifica che il DTO non sia nullo
         if (dto == null) {
@@ -126,7 +126,7 @@ public class AutomobileService implements CrudService<AutomobileDto, Automobile,
     }
     
     
-    // @Override
+    
     public AutomobileDto update(Long id, AutomobileRequestDto dto) {
         // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -170,7 +170,7 @@ public class AutomobileService implements CrudService<AutomobileDto, Automobile,
         return convertToDto(updatedAutomobile);
     }
     
-    @Override
+    
     public void delete(Long id) {
         if (automobileRepository.existsById(id)) {
             automobileRepository.deleteById(id);
