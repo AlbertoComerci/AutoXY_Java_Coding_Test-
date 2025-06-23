@@ -125,8 +125,9 @@ INSERT INTO modelli (marca_id, nome) VALUES
 ((SELECT id FROM Marche WHERE nome = 'Peugeot'), '5008');
 
 -- Utenti
-INSERT INTO utenti (username, email, password) VALUES
-('utente_prova', 'utente@prova.com', 'password123');
+INSERT INTO utenti (nome, cognome, email, password) VALUES
+('Mario', 'Rossi', 'mario.rossi@example.com', 'password123'),
+('Luca', 'Bianchi', 'luca.bianchi@example.com', 'password456');
 
 -- Automobili
 INSERT INTO automobili (anno, prezzo, km, utente_id, marca_id, modello_id, regione_id, stato_id, alimentazione_id) VALUES

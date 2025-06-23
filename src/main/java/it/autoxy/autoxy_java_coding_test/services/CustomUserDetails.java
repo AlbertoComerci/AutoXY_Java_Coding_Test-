@@ -17,13 +17,13 @@ import lombok.NoArgsConstructor;
 public class CustomUserDetails implements UserDetails {
     
     private Long id;
-    private String username;
+    private String fullname;
     private String email;
     private String password;
     
     public CustomUserDetails(Utente utente) {
         this.id = utente.getId();
-        this.username = utente.getUsername();
+        this.fullname = utente.getNome() + " " + utente.getCognome();
         this.email = utente.getEmail();
         this.password = utente.getPassword();
     }
@@ -76,7 +76,7 @@ public class CustomUserDetails implements UserDetails {
     }
     
     public String getFullName() {
-        return username;
+        return fullname;
     }
     
 }

@@ -30,7 +30,6 @@ import it.autoxy.autoxy_java_coding_test.repositories.UtenteRepository;
 
 @DataJpaTest
 @Transactional
-@AutoConfigureTestDatabase(replace = Replace.NONE)
 public class AutomobileRepositoryTest {
     
     @Autowired

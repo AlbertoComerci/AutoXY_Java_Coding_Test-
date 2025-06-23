@@ -22,7 +22,10 @@ public class Utente {
     private long id;
 
     @Column(nullable = false, length = 100)
-    private String username;
+    private String nome;
+
+    @Column(nullable = false, length = 100)
+    private String cognome;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
