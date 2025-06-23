@@ -24,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import it.autoxy.autoxy_java_coding_test.exceptions.ResourceNotFoundException;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,183 +62,84 @@ public class AutomobileService  {
         return modelMapper.map(automobile, AutomobileDto.class);
     }
     
-    
     public List<AutomobileDto> readAll() {
         return automobileRepository.findAll().stream()
         .map(this::convertToDto)
         .collect(Collectors.toList());
     }
     
+    // Utility DRY generica per validare entità da repository
+    private <T> T getOrThrow(java.util.Optional<T> optional, String message) {
+        return optional.orElseThrow(() -> new ResourceNotFoundException(message));
+    }
+
+    // Utility DRY generica per validare argomenti non nulli
+    private <T> T requireNonNull(T obj, String message) {
+        if (obj == null) throw new ResourceNotFoundException(message);
+        return obj;
+    }
     
     public AutomobileDto read(Long id) {
-        Automobile automobile = automobileRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
+        Automobile automobile = getOrThrow(automobileRepository.findById(id), "Automobile con id " + id + " non trovata.");
         return convertToDto(automobile);
     }
     
-
-    public AutomobileDto create(AutomobileRequestDto dto) {
-        // Verifica che il DTO non sia nullo
-        if (dto == null) {
-            throw new IllegalArgumentException("Il Dto di richiesta è nullo");
-        }
-        
-        if (dto.getUtenteId() == null || dto.getMarcaId() == null || dto.getModelloId() == null ||
-        dto.getRegioneId() == null || dto.getStatoId() == null || dto.getAlimentazioneId() == null) {
-            throw new IllegalArgumentException("Uno o più ID sono null. Controlla la richiesta.");
-        }
-        
-        
-        
-        Utente utente = utenteRepository.findById(dto.getUtenteId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Utente non trovato"));
-        
-        Marca marca = marcaRepository.findById(dto.getMarcaId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Marca non trovata"));
-        
-        Modello modello = modelloRepository.findById(dto.getModelloId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Modello non trovato"));
-        
-        Regione regione = regioneRepository.findById(dto.getRegioneId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Regione non trovata"));
-        
-        Stato stato = statoRepository.findById(dto.getStatoId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stato non trovato"));
-        
-        Alimentazione alimentazione = alimentazioneRepository.findById(dto.getAlimentazioneId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Alimentazione non trovata"));
-        
-        // Creazione della nuova automobile
+    public AutomobileDto createAutomobile(AutomobileRequestDto automobileRequestDto) {
         Automobile automobile = new Automobile();
-        automobile.setAnno(dto.getAnno());
-        automobile.setPrezzo(dto.getPrezzo());
-        automobile.setKm(dto.getKm());
-        automobile.setUtente(utente);
-        automobile.setMarca(marca);
-        automobile.setModello(modello);
-        automobile.setRegione(regione);
-        automobile.setStato(stato);
-        automobile.setAlimentazione(alimentazione);
-        
-        // Salvataggio nel DB
-        Automobile savedAutomobile = automobileRepository.save(automobile);
-        
-        // Conversione in DTO per la risposta
-        return convertToDto(savedAutomobile);
+        mapDtoToAutomobile(automobile, automobileRequestDto);
+        Automobile saved = automobileRepository.save(automobile);
+        return convertToDto(saved);
     }
     
-    
-    
-    public AutomobileDto update(Long id, AutomobileRequestDto dto) {
-        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        
-        Automobile automobile = automobileRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
-        
-        // if (existingAutomobile.getUtente().getId() != (userDetails.getId())) {
-        //     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Non sei autorizzato a modificare questa automobile");
-        // }
-        
-        automobile.setAnno(dto.getAnno());
-        automobile.setPrezzo(dto.getPrezzo());
-        automobile.setKm(dto.getKm());
-        
-        
-        
-        Utente utente = utenteRepository.findById(dto.getUtenteId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Utente non trovato"));
-        Marca marca = marcaRepository.findById(dto.getMarcaId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Marca non trovata"));
-        Modello modello = modelloRepository.findById(dto.getModelloId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Modello non trovato"));
-        Regione regione = regioneRepository.findById(dto.getRegioneId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Regione non trovata"));
-        Stato stato = statoRepository.findById(dto.getStatoId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stato non trovato"));
-        Alimentazione alimentazione = alimentazioneRepository.findById(dto.getAlimentazioneId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"Alimentazione non trovata"));
-        
-        automobile.setUtente(utente);
-        automobile.setMarca(marca);
-        automobile.setModello(modello);
-        automobile.setRegione(regione);
-        automobile.setStato(stato);
-        automobile.setAlimentazione(alimentazione);
-        
-        Automobile updatedAutomobile = automobileRepository.save(automobile);
-        
-        
-        return convertToDto(updatedAutomobile);
+    public AutomobileDto updateAutomobile(Long id, AutomobileRequestDto automobileRequestDto) {
+        Automobile existingAutomobile = getOrThrow(automobileRepository.findById(id), "Automobile con id " + id + " non trovata.");
+        mapDtoToAutomobile(existingAutomobile, automobileRequestDto);
+        Automobile saved = automobileRepository.save(existingAutomobile);
+        return convertToDto(saved);
     }
-    
     
     public void delete(Long id) {
         if (automobileRepository.existsById(id)) {
             automobileRepository.deleteById(id);
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata");
+            throw new ResourceNotFoundException("Automobile non trovata");
         }
     }
     
     public List<AutomobileDto> findByUtente(Utente utente) {
-        if (utente == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato");
-        }
+        requireNonNull(utente, "Utente non trovato");
         return automobileRepository.findByUtente(utente)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByMarca(Marca marca) {
-        if (marca == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marca non valida");
-        }
+        requireNonNull(marca, "Marca non valida");
         return automobileRepository.findByMarca(marca)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByModello(Modello modello) {
-        if (modello == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modello non valido");
-        }
+        requireNonNull(modello, "Modello non valido");
         return automobileRepository.findByModello(modello)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByRegione(Regione regione) {
-        if (regione == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Regione non valida");
-        }
+        requireNonNull(regione, "Regione non valida");
         return automobileRepository.findByRegione(regione)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByStato(Stato stato) {
-        if (stato == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stato non valido");
-        }
+        requireNonNull(stato, "Stato non valido");
         return automobileRepository.findByStato(stato)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByAlimentazione(Alimentazione alimentazione) {
-        if (alimentazione == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Alimentazione non valida");
-        }
+        requireNonNull(alimentazione, "Alimentazione non valida");
         return automobileRepository.findByAlimentazione(alimentazione)
-        .stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
+            .stream().map(this::convertToDto).collect(Collectors.toList());
     }
     
     public List<AutomobileDto> findByPrezzoBetween(BigDecimal prezzoMin, BigDecimal prezzoMax) {
@@ -311,12 +214,19 @@ public class AutomobileService  {
         .collect(Collectors.toList());
     }
     
+
+    private void mapDtoToAutomobile(Automobile automobile, AutomobileRequestDto dto) {
+        automobile.setAnno(dto.getAnno());
+        automobile.setPrezzo(dto.getPrezzo());
+        automobile.setKm(dto.getKm());
+        automobile.setUtente(getOrThrow(utenteRepository.findById(dto.getUtenteId()), "Utente con id " + dto.getUtenteId() + " non trovato."));
+        automobile.setMarca(getOrThrow(marcaRepository.findById(dto.getMarcaId()), "Marca con id " + dto.getMarcaId() + " non trovata."));
+        automobile.setModello(getOrThrow(modelloRepository.findById(dto.getModelloId()), "Modello con id " + dto.getModelloId() + " non trovato."));
+        automobile.setRegione(getOrThrow(regioneRepository.findById(dto.getRegioneId()), "Regione con id " + dto.getRegioneId() + " non trovata."));
+        automobile.setStato(getOrThrow(statoRepository.findById(dto.getStatoId()), "Stato con id " + dto.getStatoId() + " non trovato."));
+        automobile.setAlimentazione(getOrThrow(alimentazioneRepository.findById(dto.getAlimentazioneId()), "Alimentazione con id " + dto.getAlimentazioneId() + " non trovata."));
+    }
     
-    // public boolean isOwner(Long automobileId, Long utenteId) {
-    //     Automobile automobile = automobileRepository.findById(automobileId)
-    //     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Automobile non trovata"));
-    //     return automobile.getUtente().getId() == (utenteId);
-    // }
 }
 
 

@@ -56,14 +56,14 @@ public class AutomobileController {
     @PostMapping
     public ResponseEntity<AutomobileDto> createAutomobile(@RequestBody AutomobileRequestDto dto) {
         System.out.println("Automobile ricevuta: " + dto);
-        AutomobileDto createdAutomobile = automobileService.create(dto);
+        AutomobileDto createdAutomobile = automobileService.createAutomobile(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAutomobile);
     }
 
     @PutMapping("/{id}")
     // @PreAuthorize("@automobileService.isOwner(#id, authentication.principal.id)")
     public ResponseEntity<AutomobileDto> updateAutomobile(@PathVariable Long id, @RequestBody AutomobileRequestDto dto) {
-        AutomobileDto updated = automobileService.update(id, dto);
+        AutomobileDto updated = automobileService.updateAutomobile(id, dto);
         return ResponseEntity.ok(updated);
     }
 
@@ -145,5 +145,4 @@ public class AutomobileController {
                 marcaNome, modelloNome, prezzoMin, prezzoMax, statoNome, regioneNome, alimentazioneNome);
         return ResponseEntity.ok(automobili);
     }
-
 }
