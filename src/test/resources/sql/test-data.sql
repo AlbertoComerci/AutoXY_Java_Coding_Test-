@@ -19,3 +19,12 @@ INSERT INTO automobili (id, anno, prezzo, km, utente_id, marca_id, modello_id, r
 (102, 2021, 35000.00, 25000, 1, 2, 2, 1, 1, 1), -- BMW Serie 3
 (103, 2019, 12000.00, 80000, 1, 1, 1, 1, 1, 1), -- Altra Fiat Panda
 (104, 2022, 45000.00, 10000, 1, 2, 2, 1, 1, 1); -- Altra BMW Serie 3
+
+-- Aggiorna i contatori delle sequenze di auto-incremento
+ALTER TABLE utenti ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE marche ALTER COLUMN id RESTART WITH 3;
+ALTER TABLE modelli ALTER COLUMN id RESTART WITH 3;
+ALTER TABLE regioni ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE stati ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE alimentazioni ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE automobili ALTER COLUMN id RESTART WITH 105;

@@ -2,139 +2,107 @@ package it.autoxy.autoxy_java_coding_test.repositories;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
-import it.autoxy.autoxy_java_coding_test.models.Automobile;
-import it.autoxy.autoxy_java_coding_test.models.Marca;
-import it.autoxy.autoxy_java_coding_test.models.Modello;
-import it.autoxy.autoxy_java_coding_test.models.Regione;
-import it.autoxy.autoxy_java_coding_test.models.Stato;
 import it.autoxy.autoxy_java_coding_test.models.Utente;
-import it.autoxy.autoxy_java_coding_test.repositories.AlimentazioneRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.AutomobileRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.MarcaRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.ModelloRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.RegioneRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.StatoRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.UtenteRepository;
 
+// @DataJpaTest: Configura un ambiente di test solo per lo strato di persistenza (JPA).
 @DataJpaTest
 @Transactional
+// @Sql: Esegue lo script SQL per popolare il DB prima di eseguire i test in questa classe.
+@Sql("/sql/test-data.sql")
 public class UtenteRepositoryTest {
 
-    @Autowired
-    private AutomobileRepository automobileRepository;
-    
-    @Autowired
-    private MarcaRepository marcaRepository;
-    
-    @Autowired
-    private ModelloRepository modelloRepository;
-    
-    @Autowired
-    private RegioneRepository regioneRepository;
-    
-    @Autowired
-    private StatoRepository statoRepository;
-    
-    @Autowired
-    private AlimentazioneRepository alimentazioneRepository;
-    
+    // Inietta solo il repository che vogliamo testare.
     @Autowired
     private UtenteRepository utenteRepository;
-    
-    private Utente utenteTest1;
-    private Automobile autoTest1;
-    private Automobile autoTest2;
-    
-    @BeforeEach
-    void setUp(){
-        utenteTest1 = new Utente();
-        utenteTest1.setUsername("Piero");
-        utenteTest1.setEmail("piero@test.it");
-        utenteTest1.setPassword("123password");
-        utenteRepository.save(utenteTest1);
-        
-        // Dati esistenti nel database
-        Marca marca = marcaRepository.findByNome("Fiat");
-        Modello modello = modelloRepository.findByMarca(marca).get(0); // Primo modello della Fiat
-        Regione regione = regioneRepository.findByNome("Lombardia");
-        Stato stato = statoRepository.findByNome("Disponibile");
-        Alimentazione alimentazione = alimentazioneRepository.findByNome("Benzina");
-        
-        autoTest1 = new Automobile();
-        autoTest1.setAnno(2020);
-        autoTest1.setPrezzo(new BigDecimal("15000.00"));
-        autoTest1.setKm(50000);
-        autoTest1.setUtente(utenteTest1);
-        autoTest1.setMarca(marca);
-        autoTest1.setModello(modello);
-        autoTest1.setRegione(regione);
-        autoTest1.setStato(stato);
-        autoTest1.setAlimentazione(alimentazione);
-        automobileRepository.save(autoTest1);
-        
-        autoTest2 = new Automobile();
-        autoTest2.setAnno(2024);
-        autoTest2.setPrezzo(new BigDecimal("25000.00"));
-        autoTest2.setKm(10000);
-        autoTest2.setUtente(utenteTest1);
-        autoTest2.setMarca(marca);
-        autoTest2.setModello(modello);
-        autoTest2.setRegione(regione);
-        autoTest2.setStato(stato);
-        autoTest2.setAlimentazione(alimentazione);
-        automobileRepository.save(autoTest2);
-    }
-    
-    
-    
-    
-    @Test
-    void testFindByEmail() {
-        Utente utente = utenteRepository.findByEmail("piero@test.it");
-        
-        assertThat(utente)
-        .isNotNull()
-        .extracting(Utente::getUsername, Utente::getPassword)
-        .containsExactly("Piero", "123password");
-    }
-    
-    
-    
-    
-    @Test
-    void testDeleteUtente(){
-        Iterable<Utente> utenti = utenteRepository.findAll();
-        Utente utente = utenti.iterator().next();
 
-        List<Automobile> automobili = automobileRepository.findByUtente(utente);
-        automobileRepository.deleteAll(automobili);
+    // NON serve un metodo @BeforeEach. I dati sono già pronti grazie a @Sql.
 
-        utenteRepository.delete(utente);
-        assertThat(utenteRepository.findAll()).hasSize(1);
+    @Test
+    void findByEmail_ShouldReturnUser_WhenEmailExists() {
+        // ARRANGE: Sappiamo che questo utente esiste grazie a test-data.sql
+        String existingEmail = "test@example.com";
+
+        // ACT: Eseguiamo la ricerca
+        Optional<Utente> foundUtenteOpt = utenteRepository.findByEmail(existingEmail);
+
+        // ASSERT: Verifichiamo che l'Optional non sia vuoto e che i dati siano corretti
+        assertThat(foundUtenteOpt).isPresent();
+        assertThat(foundUtenteOpt.get().getNome()).isEqualTo("Test");
+        assertThat(foundUtenteOpt.get().getCognome()).isEqualTo("User");
+    }
+
+    @Test
+    void findByEmail_ShouldReturnEmpty_WhenEmailDoesNotExist() {
+        // ARRANGE
+        String nonExistingEmail = "non-esiste@example.com";
+
+        // ACT
+        Optional<Utente> foundUtenteOpt = utenteRepository.findByEmail(nonExistingEmail);
+
+        // ASSERT
+        assertThat(foundUtenteOpt).isNotPresent(); // o .isEmpty()
+    }
+
+    @Test
+    void save_ShouldPersistNewUser() {
+        // ARRANGE: Creiamo un nuovo utente non ancora salvato
+        Utente newUser = new Utente();
+        newUser.setNome("Franco");
+        newUser.setCognome("Verdi");
+        newUser.setEmail("franco.v@example.com");
+        newUser.setPassword("supersecret");
+
+        long countBefore = utenteRepository.count();
+
+        // ACT: Salviamo il nuovo utente
+        Utente savedUser = utenteRepository.save(newUser);
+
+        // ASSERT: Verifichiamo che il salvataggio sia avvenuto correttamente
+        assertThat(savedUser).isNotNull();
+        assertThat(savedUser.getId()).isNotNull(); // L'ID deve essere stato generato
+        assertThat(savedUser.getNome()).isEqualTo("Franco");
+        assertThat(utenteRepository.count()).isEqualTo(countBefore + 1);
     }
     
     @Test
-    void testUpdateUtente(){
-        Iterable<Utente> utenti = utenteRepository.findAll();
-        Utente utente = utenti.iterator().next();
-        utente.setUsername("Franco");
-        utenteRepository.save(utente);
-        
-        assertThat(utenteRepository.findById(utente.getId())).get()
-        .extracting("username")
-        .isEqualTo("Franco");
-    }
+    void delete_ShouldRemoveUser() {
+        // ARRANGE: Prendiamo l'ID di un utente che sappiamo esistere
+        Optional<Utente> userToDeleteOpt = utenteRepository.findByEmail("test@example.com");
+        assertThat(userToDeleteOpt).isPresent();
+        Long userId = userToDeleteOpt.get().getId();
 
+        long countBefore = utenteRepository.count();
+
+        // ACT: Cancelliamo l'utente
+        utenteRepository.deleteById(userId);
+
+        // ASSERT: Verifichiamo che il numero di utenti sia diminuito e che l'utente non sia più trovabile
+        assertThat(utenteRepository.count()).isEqualTo(countBefore - 1);
+        assertThat(utenteRepository.findById(userId)).isNotPresent();
+    }
+    
+    @Test
+    void update_ShouldModifyExistingUser() {
+        // ARRANGE: Troviamo l'utente esistente
+        Optional<Utente> userToUpdateOpt = utenteRepository.findByEmail("test@example.com");
+        assertThat(userToUpdateOpt).isPresent();
+        Utente userToUpdate = userToUpdateOpt.get();
+
+        // ACT: Modifichiamo un campo e salviamo
+        userToUpdate.setCognome("Verdi");
+        utenteRepository.save(userToUpdate);
+
+        // ASSERT: Ricarichiamo l'utente dal DB e verifichiamo che la modifica sia stata salvata
+        Optional<Utente> updatedUserOpt = utenteRepository.findById(userToUpdate.getId());
+        assertThat(updatedUserOpt).isPresent();
+        assertThat(updatedUserOpt.get().getCognome()).isEqualTo("Verdi");
+    }
 }

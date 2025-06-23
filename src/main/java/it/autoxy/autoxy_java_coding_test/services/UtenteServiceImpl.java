@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import it.autoxy.autoxy_java_coding_test.dtos.UtenteDto;
+import it.autoxy.autoxy_java_coding_test.exceptions.ResourceNotFoundException;
 import it.autoxy.autoxy_java_coding_test.models.Utente;
 import it.autoxy.autoxy_java_coding_test.repositories.UtenteRepository;
 
@@ -34,14 +33,15 @@ public class UtenteServiceImpl implements UtenteService {
     
     @Override
     public Utente findUtenteByEmail(String email) {
-        return utenteRepository.findByEmail(email);
+        return utenteRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
     }
     
     @Override
     public Utente saveUtente(UtenteDto utenteDto) {
         // Verifica se l'email è già registrata
-        if (utenteRepository.findByEmail(utenteDto.getEmail()) != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email già registrata");
+        if (utenteRepository.findByEmail(utenteDto.getEmail()).isPresent()) {
+            throw new ResourceNotFoundException("Email già registrata");
         }
         
         // Crea un nuovo utente
@@ -58,7 +58,7 @@ public class UtenteServiceImpl implements UtenteService {
     @Override
     public Utente find(long id) {
         return utenteRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato"));
+            .orElseThrow(() -> new ResourceNotFoundException("Utente non trovato"));
     }
     
     public UtenteDto convertToDto(Utente utente) {

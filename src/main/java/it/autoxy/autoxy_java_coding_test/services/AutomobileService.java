@@ -27,7 +27,9 @@ import org.springframework.web.server.ResponseStatusException;
 import it.autoxy.autoxy_java_coding_test.exceptions.ResourceNotFoundException;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,11 +87,15 @@ public class AutomobileService  {
     }
     
     public AutomobileDto createAutomobile(AutomobileRequestDto automobileRequestDto) {
-        Automobile automobile = new Automobile();
-        mapDtoToAutomobile(automobile, automobileRequestDto);
-        Automobile saved = automobileRepository.save(automobile);
-        return convertToDto(saved);
-    }
+    Automobile automobile = new Automobile();
+    // Questo metodo imposta tutti i campi, recuperando le entità tramite ID
+    mapDtoToAutomobile(automobile, automobileRequestDto); 
+    
+    // Ora possiamo salvare direttamente
+    Automobile saved = automobileRepository.save(automobile);
+    
+    return convertToDto(saved);
+}
     
     public AutomobileDto updateAutomobile(Long id, AutomobileRequestDto automobileRequestDto) {
         Automobile existingAutomobile = getOrThrow(automobileRepository.findById(id), "Automobile con id " + id + " non trovata.");
@@ -168,51 +174,64 @@ public class AutomobileService  {
     
     // Query dinamiche per la ricerca nel database
     public List<AutomobileDto> searchByFilters(String marcaNome, String modelloNome, BigDecimal prezzoMin, BigDecimal prezzoMax,
-    String statoNome, String regioneNome, String alimentazioneNome) {
-        
-        Specification<Automobile> spec = Specification.where(null);
-        
-        if (marcaNome != null) {
-            Marca marca = marcaRepository.findByNome(marcaNome);
-            if (marca != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("marca"), marca));
-            }
+        String statoNome, String regioneNome, String alimentazioneNome) {
+    
+    Specification<Automobile> spec = Specification.where(null);
+    
+    if (marcaNome != null && !marcaNome.isEmpty()) {
+        // 1. Ottieni l'Optional dal repository
+        Optional<Marca> marcaOpt = marcaRepository.findByNome(marcaNome);
+        // 2. Se l'Optional contiene un valore, usalo per aggiungere il filtro
+        if (marcaOpt.isPresent()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("marca"), marcaOpt.get()));
+        } else {
+            // Se la marca richiesta non esiste, la ricerca non deve produrre risultati
+            return Collections.emptyList();
         }
-        if (modelloNome != null) {
-            Modello modello = modelloRepository.findByNome(modelloNome);
-            if (modello != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("modello"), modello));
-            }
-        }
-        if (prezzoMin != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("prezzo"), prezzoMin));
-        }
-        if (prezzoMax != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("prezzo"), prezzoMax));
-        }
-        if (statoNome != null) {
-            Stato stato = statoRepository.findByNome(statoNome);
-            if (stato != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("stato"), stato));
-            }
-        }
-        if (regioneNome != null) {
-            Regione regione = regioneRepository.findByNome(regioneNome);
-            if (regione != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("regione"), regione));
-            }
-        }
-        if (alimentazioneNome != null) {
-            Alimentazione alimentazione = alimentazioneRepository.findByNome(alimentazioneNome);
-            if (alimentazione != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("alimentazione"), alimentazione));
-            }
-        }
-        
-        return automobileRepository.findAll(spec).stream()
-        .map(this::convertToDto)
-        .collect(Collectors.toList());
     }
+    if (modelloNome != null && !modelloNome.isEmpty()) {
+        Optional<Modello> modelloOpt = modelloRepository.findByNome(modelloNome);
+        if (modelloOpt.isPresent()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("modello"), modelloOpt.get()));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    if (prezzoMin != null) {
+        spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("prezzo"), prezzoMin));
+    }
+    if (prezzoMax != null) {
+        spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("prezzo"), prezzoMax));
+    }
+    if (statoNome != null && !statoNome.isEmpty()) {
+        Optional<Stato> statoOpt = statoRepository.findByNome(statoNome);
+        if (statoOpt.isPresent()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("stato"), statoOpt.get()));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    if (regioneNome != null && !regioneNome.isEmpty()) {
+        Optional<Regione> regioneOpt = regioneRepository.findByNome(regioneNome);
+        if (regioneOpt.isPresent()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("regione"), regioneOpt.get()));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    if (alimentazioneNome != null && !alimentazioneNome.isEmpty()) {
+        Optional<Alimentazione> alimentazioneOpt = alimentazioneRepository.findByNome(alimentazioneNome);
+        if (alimentazioneOpt.isPresent()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("alimentazione"), alimentazioneOpt.get()));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    
+    return automobileRepository.findAll(spec).stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+}
     
 
     private void mapDtoToAutomobile(Automobile automobile, AutomobileRequestDto dto) {

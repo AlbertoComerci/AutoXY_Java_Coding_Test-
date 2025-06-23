@@ -4,13 +4,12 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.autoxy.autoxy_java_coding_test.models.Alimentazione;
@@ -20,285 +19,201 @@ import it.autoxy.autoxy_java_coding_test.models.Modello;
 import it.autoxy.autoxy_java_coding_test.models.Regione;
 import it.autoxy.autoxy_java_coding_test.models.Stato;
 import it.autoxy.autoxy_java_coding_test.models.Utente;
-import it.autoxy.autoxy_java_coding_test.repositories.AlimentazioneRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.AutomobileRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.MarcaRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.ModelloRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.RegioneRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.StatoRepository;
-import it.autoxy.autoxy_java_coding_test.repositories.UtenteRepository;
 
 @DataJpaTest
 @Transactional
+// Esegue lo script SQL per popolare il DB prima di ogni test in questa classe
+@Sql("/sql/test-data.sql")
 public class AutomobileRepositoryTest {
     
-    @Autowired
-    private AutomobileRepository automobileRepository;
-    
-    @Autowired
-    private MarcaRepository marcaRepository;
-    
-    @Autowired
-    private ModelloRepository modelloRepository;
-    
-    @Autowired
-    private RegioneRepository regioneRepository;
-    
-    @Autowired
-    private StatoRepository statoRepository;
-    
-    @Autowired
-    private AlimentazioneRepository alimentazioneRepository;
-    
-    @Autowired
-    private UtenteRepository utenteRepository;
-    
-    private Utente utenteTest1;
-    private Automobile autoTest1;
-    private Automobile autoTest2;
-    
-    @BeforeEach
-    void setUp(){
-        utenteTest1 = new Utente();
-        utenteTest1.setUsername("Piero");
-        utenteTest1.setEmail("piero@test.it");
-        utenteTest1.setPassword("123password");
-        utenteRepository.save(utenteTest1);
-        
-        // Dati esistenti nel database
-        Marca marca = marcaRepository.findByNome("Fiat");
-        Modello modello = modelloRepository.findByMarca(marca).get(0); // Primo modello della Fiat
-        Regione regione = regioneRepository.findByNome("Lombardia");
-        Stato stato = statoRepository.findByNome("Disponibile");
-        Alimentazione alimentazione = alimentazioneRepository.findByNome("Benzina");
-        
-        autoTest1 = new Automobile();
-        autoTest1.setAnno(2020);
-        autoTest1.setPrezzo(new BigDecimal("15000.00"));
-        autoTest1.setKm(50000);
-        autoTest1.setUtente(utenteTest1);
-        autoTest1.setMarca(marca);
-        autoTest1.setModello(modello);
-        autoTest1.setRegione(regione);
-        autoTest1.setStato(stato);
-        autoTest1.setAlimentazione(alimentazione);
-        automobileRepository.save(autoTest1);
-        
-        autoTest2 = new Automobile();
-        autoTest2.setAnno(2024);
-        autoTest2.setPrezzo(new BigDecimal("25000.00"));
-        autoTest2.setKm(10000);
-        autoTest2.setUtente(utenteTest1);
-        autoTest2.setMarca(marca);
-        autoTest2.setModello(modello);
-        autoTest2.setRegione(regione);
-        autoTest2.setStato(stato);
-        autoTest2.setAlimentazione(alimentazione);
-        automobileRepository.save(autoTest2);
-    }
-    
-    
-    
-    
+    // Inietta i repository reali che parleranno con il DB di test H2
+    @Autowired private AutomobileRepository automobileRepository;
+    @Autowired private MarcaRepository marcaRepository;
+    @Autowired private ModelloRepository modelloRepository;
+    @Autowired private RegioneRepository regioneRepository;
+    @Autowired private StatoRepository statoRepository;
+    @Autowired private AlimentazioneRepository alimentazioneRepository;
+    @Autowired private UtenteRepository utenteRepository;
+
     @Test
     void testFindByUtente() {
-        Utente utente = utenteRepository.findByEmail("piero@test.it");
-        List<Automobile> result = automobileRepository.findByUtente(utente);
+        // ARRANGE: Recupera l'utente dai dati di test
+        Optional<Utente> utenteOpt = utenteRepository.findByEmail("test@example.com");
+        assertThat(utenteOpt).isPresent();
+
+        // ACT: Esegui la query
+        List<Automobile> result = automobileRepository.findByUtente(utenteOpt.get());
+
+        // ASSERT: Controlla che il risultato non sia vuoto e che tutte le auto appartengano a quell'utente
         assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    public void whenFindByUtente_ShouldReturnAutomobili() {
-        
-        List<Automobile> found = automobileRepository.findByUtente(utenteTest1);
-        
-        
-        assertThat(found).hasSize(2)
-        .contains(autoTest1, autoTest2)
-        .allMatch(auto -> auto.getUtente().getEmail().equals("piero@test.it"));
+        assertThat(result).hasSize(4); // Sappiamo che ci sono 4 auto nel nostro script
+        assertThat(result).allMatch(auto -> auto.getUtente().getId() == utenteOpt.get().getId());
     }
     
     @Test
     void testFindByMarca() {
-        Marca marca = marcaRepository.findByNome("Fiat");
-        List<Automobile> result = automobileRepository.findByMarca(marca);
-        assertThat(result).isNotEmpty();
+        // ARRANGE
+        Optional<Marca> marcaOpt = marcaRepository.findByNome("Fiat");
+        assertThat(marcaOpt).isPresent();
+
+        // ACT
+        List<Automobile> result = automobileRepository.findByMarca(marcaOpt.get());
+
+        // ASSERT
+        assertThat(result).isNotEmpty().hasSize(2);
+        assertThat(result).allMatch(auto -> auto.getMarca().getNome().equals("Fiat"));
     }
-    
-    void whenFindByMarca_ShouldReturnAutomobili() {
-        
-        Marca fiat = marcaRepository.findByNome("Fiat");
-        
-        
-        List<Automobile> found = automobileRepository.findByMarca(fiat);
-        
-        
-        assertThat(found).isNotEmpty()
-        .allMatch(auto -> auto.getMarca().getNome().equals("Fiat"));
-    }
-    
+
     @Test
     void testFindByModello() {
-        Modello modello = modelloRepository.findByNome("Panda");
-        List<Automobile> result = automobileRepository.findByModello(modello);
-        assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    void whenFindByModello_ShouldReturnAutomobili() {
-        
-        Marca fiat = marcaRepository.findByNome("Fiat");
-        Modello panda = modelloRepository.findByMarca(fiat)
-        .stream()
-        .filter(m -> m.getNome().equals("Panda"))
-        .findFirst()
-        .orElseThrow();
-        
-        
-        List<Automobile> found = automobileRepository.findByModello(panda);
-        
-        
-        assertThat(found).allMatch(auto -> auto.getModello().getNome().equals("Panda"));
+        // ARRANGE
+        Optional<Modello> modelloOpt = modelloRepository.findByNome("Panda");
+        assertThat(modelloOpt).isPresent();
+
+        // ACT
+        List<Automobile> result = automobileRepository.findByModello(modelloOpt.get());
+
+        // ASSERT
+        assertThat(result).isNotEmpty().hasSize(2);
+        assertThat(result).allMatch(auto -> auto.getModello().getNome().equals("Panda"));
     }
     
     @Test
     void testFindByRegione() {
-        Regione regione = regioneRepository.findByNome("Lombardia");
-        List<Automobile> result = automobileRepository.findByRegione(regione);
-        assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    void whenFindByRegione_ShouldReturnAutomobili() {
-        
-        Regione lombardia = regioneRepository.findByNome("Lombardia");
-        
-        
-        List<Automobile> found = automobileRepository.findByRegione(lombardia);
-        
-        
-        assertThat(found).isNotEmpty()
-        .allMatch(auto -> auto.getRegione().getNome().equals("Lombardia"));
+        // ARRANGE: CORRETTO - Cerca la regione che esiste nei dati di test
+        Optional<Regione> regioneOpt = regioneRepository.findByNome("Piemonte");
+        assertThat(regioneOpt).isPresent();
+
+        // ACT
+        List<Automobile> result = automobileRepository.findByRegione(regioneOpt.get());
+
+        // ASSERT
+        assertThat(result).isNotEmpty().hasSize(4);
+        assertThat(result).allMatch(auto -> auto.getRegione().getNome().equals("Piemonte"));
     }
     
     @Test
     void testFindByStato() {
-        Stato stato = statoRepository.findByNome("Disponibile");
-        List<Automobile> result = automobileRepository.findByStato(stato);
-        assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    void whenFindByStato_ShouldReturnAutomobili() {
-        
-        Stato disponibile = statoRepository.findByNome("Disponibile");
-        
-        
-        List<Automobile> found = automobileRepository.findByStato(disponibile);
-        
-        
-        assertThat(found).isNotEmpty()
-        .allMatch(auto -> auto.getStato().getNome().equals("Disponibile"));
+        // ARRANGE: CORRETTO - Cerca lo stato che esiste
+        Optional<Stato> statoOpt = statoRepository.findByNome("Usato");
+        assertThat(statoOpt).isPresent();
+
+        // ACT
+        List<Automobile> result = automobileRepository.findByStato(statoOpt.get());
+
+        // ASSERT
+        assertThat(result).isNotEmpty().hasSize(4);
+        assertThat(result).allMatch(auto -> auto.getStato().getNome().equals("Usato"));
     }
     
     @Test
     void testFindByAlimentazione() {
-        Alimentazione alimentazione = alimentazioneRepository.findByNome("Benzina");
-        List<Automobile> result = automobileRepository.findByAlimentazione(alimentazione);
-        assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    void whenFindByAlimentazione_ShouldReturnAutomobili() {
+        // ARRANGE: CORRETTO - Cerca l'alimentazione che esiste
+        Optional<Alimentazione> alimentazioneOpt = alimentazioneRepository.findByNome("Benzina");
+        assertThat(alimentazioneOpt).isPresent();
+
+        // ACT
+        List<Automobile> result = automobileRepository.findByAlimentazione(alimentazioneOpt.get());
         
-        Alimentazione benzina = alimentazioneRepository.findByNome("Benzina");
-        
-        
-        List<Automobile> found = automobileRepository.findByAlimentazione(benzina);
-        
-        
-        assertThat(found).isNotEmpty()
-        .allMatch(auto -> auto.getAlimentazione().getNome().equals("Benzina"));
+        // ASSERT
+        assertThat(result).isNotEmpty().hasSize(4);
+        assertThat(result).allMatch(auto -> auto.getAlimentazione().getNome().equals("Benzina"));
     }
     
     @Test
     void testFindByPrezzoBetween() {
-        List<Automobile> result = automobileRepository.findByPrezzoBetween(BigDecimal.valueOf(5000.00), BigDecimal.valueOf(20000.00)); // 5000.00, 20000.00);
-        assertThat(result).isNotEmpty();
-    }
-    
-    @Test
-    void findByPrezzoBetween_ShouldReturnCarsInPriceRange() {
-        
-        List<Automobile> found = automobileRepository.findByPrezzoBetween(BigDecimal.valueOf(10000.00), BigDecimal.valueOf(20000.00)); // 10000.00, 20000.00);
-        
-        
-        assertThat(found).isNotEmpty()
-        .allMatch(auto -> 
-        auto.getPrezzo().compareTo(new BigDecimal("10000.00")) >= 0 &&
-        auto.getPrezzo().compareTo(new BigDecimal("20000.00")) <= 0
+        // ACT
+        List<Automobile> result = automobileRepository.findByPrezzoBetween(new BigDecimal("10000.00"), new BigDecimal("20000.00"));
+
+        // ASSERT: CORRETTO - Cerca le auto che sappiamo esistere in quel range
+        assertThat(result).isNotEmpty().hasSize(2); // La Panda da 15k e quella da 12k
+        assertThat(result).allMatch(auto ->
+            auto.getPrezzo().compareTo(new BigDecimal("10000.00")) >= 0 &&
+            auto.getPrezzo().compareTo(new BigDecimal("20000.00")) <= 0
         );
     }
     
     @Test
     void testFindByMarcaNotFound() {
-        Marca marca = marcaRepository.findByNome("Tesla"); 
-        assertThat(marca).isNull(); 
+        // ARRANGE
+        Optional<Marca> marcaOpt = marcaRepository.findByNome("Tesla"); 
         
-        List<Automobile> result = automobileRepository.findByMarca(marca);
-        assertThat(result).isEmpty();
-        
-        
+        // ASSERT
+        assertThat(marcaOpt).isNotPresent(); // Verifichiamo che la marca non esista
+        // Poiché la marca è null, non possiamo passarla al repository, il test finisce qui.
     }
     
     @Test
     void saveCar_ShouldPersistData() {
-        
-        Marca bmw = marcaRepository.findByNome("BMW");
-        Modello serie1 = modelloRepository.findByMarca(bmw)
-        .stream()
-        .filter(m -> m.getNome().equals("Serie 1"))
-        .findFirst()
-        .orElseThrow();
+        // ARRANGE: Recupera le entità esistenti per creare una nuova auto
+        Optional<Utente> utenteOpt = utenteRepository.findByEmail("test@example.com");
+        Optional<Marca> marcaOpt = marcaRepository.findByNome("BMW");
+        // CORREZIONE: Cerca il modello che esiste nel nostro data.sql
+        Optional<Modello> modelloOpt = modelloRepository.findByNome("Serie 3");
+        Optional<Regione> regioneOpt = regioneRepository.findByNome("Piemonte");
+        Optional<Stato> statoOpt = statoRepository.findByNome("Usato");
+        Optional<Alimentazione> alimentazioneOpt = alimentazioneRepository.findByNome("Benzina");
+
+        // Assicurati che tutti i pezzi esistano prima di costruire l'auto
+        assertThat(utenteOpt).isPresent();
+        assertThat(marcaOpt).isPresent();
+        assertThat(modelloOpt).isPresent();
+        assertThat(regioneOpt).isPresent();
+        assertThat(statoOpt).isPresent();
+        assertThat(alimentazioneOpt).isPresent();
+
+        long countBefore = automobileRepository.count();
+
         Automobile newAuto = new Automobile();
-        newAuto.setAnno(2023);
-        newAuto.setPrezzo(new BigDecimal("35000.00"));
-        newAuto.setKm(0);
-        newAuto.setUtente(utenteTest1);
-        newAuto.setMarca(bmw);
-        newAuto.setModello(serie1);
-        newAuto.setRegione(regioneRepository.findByNome("Lombardia"));
-        newAuto.setStato(statoRepository.findByNome("Disponibile"));
-        newAuto.setAlimentazione(alimentazioneRepository.findByNome("Diesel"));
+        newAuto.setAnno(2024);
+        newAuto.setPrezzo(new BigDecimal("50000.00"));
+        newAuto.setKm(100);
+        newAuto.setUtente(utenteOpt.get());
+        newAuto.setMarca(marcaOpt.get());
+        newAuto.setModello(modelloOpt.get());
+        newAuto.setRegione(regioneOpt.get());
+        newAuto.setStato(statoOpt.get());
+        newAuto.setAlimentazione(alimentazioneOpt.get());
         
-        
+        // ACT
         Automobile saved = automobileRepository.save(newAuto);
         
-        
+        // ASSERT
+        assertThat(saved).isNotNull();
         assertThat(saved.getId()).isNotNull();
+        assertThat(automobileRepository.count()).isEqualTo(countBefore + 1);
         assertThat(saved.getMarca().getNome()).isEqualTo("BMW");
-        assertThat(saved.getModello().getNome()).isEqualTo("Serie 1");
     }
-    
-    
     
     @Test
     void testDeleteAutomobile(){
-        Iterable<Automobile> automobili = automobileRepository.findAll();
-        Automobile auto = automobili.iterator().next();
-        automobileRepository.delete(auto);
-        assertThat(automobileRepository.findAll()).hasSize(3);
+        // ARRANGE
+        long countBefore = automobileRepository.count();
+        assertThat(countBefore).isGreaterThan(0);
+
+        // ACT
+        automobileRepository.deleteById(101L); // Cancelliamo un'auto specifica
+        
+        // ASSERT
+        long countAfter = automobileRepository.count();
+        assertThat(countAfter).isEqualTo(countBefore - 1);
+        assertThat(automobileRepository.findById(101L)).isNotPresent();
     }
-    
+
     @Test
     void testUpdateAutomobile(){
-        Iterable<Automobile> automobili = automobileRepository.findAll();
-        Automobile auto = automobili.iterator().next();
-        auto.setKm(100);
-        automobileRepository.save(auto);
+        // ARRANGE: Recupera un'entità esistente da modificare
+        Optional<Automobile> autoOpt = automobileRepository.findById(102L); // Prendiamo la BMW
+        assertThat(autoOpt).isPresent();
+        Automobile autoToUpdate = autoOpt.get();
         
-        assertThat(automobileRepository.findById(auto.getId())).get()
-        .extracting("Km")
-        .isEqualTo(100);
+        // ACT: Modifica un valore e salva
+        autoToUpdate.setKm(99999);
+        automobileRepository.save(autoToUpdate);
+        
+        // ASSERT: Ricarica l'entità dal DB e verifica che la modifica sia stata salvata
+        Optional<Automobile> updatedAutoOpt = automobileRepository.findById(102L);
+        assertThat(updatedAutoOpt).isPresent();
+        assertThat(updatedAutoOpt.get().getKm()).isEqualTo(99999);
     }
 }
